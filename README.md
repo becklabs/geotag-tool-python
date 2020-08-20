@@ -3,6 +3,7 @@ A couple of functions I made packed into one script
  - getCreationDate - Gets creation date of a video from exif tag "TrackCreateDate"
  - getOffsets - gets offset in ms from 0th frame to current frame (mostly used for other functions)
  - getTimestamps - Generates a CSV containing each frame of a video and its respective timestamp
+ - createFrames - Generates a jpg image for every frame of a video
 
 # geotag
 
