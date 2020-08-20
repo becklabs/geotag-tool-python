@@ -25,7 +25,9 @@ def getCreationDate(file):
     for item in datelist:
         creationdate = creationdate+item
     creationdate = dateparser.parse(creationdate)
-    
+    return creationdate
+
+def getOffsets(file):
     #GET DELTA SECONDS FOR EVERY FRAME
     cap = cv2.VideoCapture(file)
     totalFps = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -38,9 +40,14 @@ def getCreationDate(file):
             pbar.update(1)
         else:
             break
-    
     cap.release()
     pbar.close()
+
+    return offsets
+
+def getTimestamps(file):
+    offsets = getOffsets(file)
+    creationdate = getCreationDate(file)
     
     #CONVERT OFFSETS TO TIMEDELTAS
     offsets = [datetime.timedelta(milliseconds=i) for i in offsets]
@@ -55,10 +62,10 @@ def getCreationDate(file):
     df = pd.DataFrame()
     df['Frame'] = frames
     df['Timestamp'] = timestamps
-    df.to_csv(file+'_timestamps')
+    df.to_csv(file+'_timestamps.csv')
     print(df)
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     if len(sys.argv) != 2: 
         print("Need exactly one argument ...")
         print("usage: python creationdate.py <filename>")
