@@ -63,7 +63,7 @@ def getTimestamps(file):
     df['Frame'] = frames
     df['Timestamp'] = timestamps
     df.to_csv(file+'_timestamps.csv')
-    print(df)
+    return df
 
 if __name__ == '__main__':
     if len(sys.argv) != 2: 
