@@ -168,3 +168,4 @@ def pyplot_classify(df):
         sed_type = int(input('Sediment type: '))
         df.loc[i,'sed_type'] = sed_type
         i+=1
+        
