@@ -34,6 +34,7 @@ def getOffsets(file):
     cap = cv2.VideoCapture(file)
     totalFps = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     offsets = []
+    sys.stdout.flush()
     pbar = tqdm(total=totalFps,desc='Getting timedeltas for: '+filename,unit='Frames')
     while(cap.isOpened()):
         frame_exists, curr_frame = cap.read()
@@ -49,53 +50,53 @@ def getOffsets(file):
 
 def splitPath(file):
     if '\\' in file:
-        file = file.split('\\')
-        filename = file[-1]
-        folder = file[-2]
+        listfile = file.split('\\')
+        filename = listfile[-1]
+        folder = file[:len(file)-len(filename)]
     elif '/' in file:
-        file = file.split('/')
-        filename = file[-1]
-        folder = file[-2]
+        listfile = file.split('/')
+        filename = listfile[-1]
+        folder = file[:len(file)-len(filename)]
     else:
         filename=file
         folder = ''
     return folder,filename
         
         
-def getTimestamps(file,export=True):
-    offsets = getOffsets(file)
-    creationdate = getCreationDate(file)
-    folder, filename = splitPath(file)
+def getTimestamps(inputPath,file,projectPath,export=True):
+    offsets = getOffsets(inputPath+file)
+    creationdate = getCreationDate(inputPath+file)
     
     #CALCULATE TIMESTAMPS
-    timestamps = [creationdate+offset for offset in offsets]
+    timestamps = [creationdate+offset+datetime.timedelta(hours=4) for offset in offsets]
     timestamps = [timestamp.replace(tzinfo=pytz.UTC) for timestamp in timestamps]
     
     #GENERATE FRAME NAMES
 
-    frames = [filename+'_'+str(i)+'.jpg' for i in range(len(timestamps))]
+    frames = [file+'_'+str(i)+'.jpg' for i in range(len(timestamps))]
     
     #EXPORT DATA AS CSV
     df = pd.DataFrame()
     df['Frame'] = frames
     df['Timestamp'] = timestamps
     if export == True:
-        df.to_csv(file+'_timestamps.csv')
+        if 'timestamps' not in os.listdir(projectPath):
+            os.mkdir(projectPath+'timestamps/')
+        df.to_csv(projectPath+'timestamps/'+file+'_timestamps.csv')
     return df
 
-def createFrames(file):
-    folder, filename = splitPath(file)
-    if 'frames' not in os.listdir():
-        os.mkdir('frames/')
-    cap = cv2.VideoCapture(file)
+def createFrames(inputPath,file,projectPath):
+    if 'frames' not in os.listdir(projectPath):
+        os.mkdir(projectPath+'frames/')
+    cap = cv2.VideoCapture(inputPath+file)
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     sys.stdout.flush()
-    pbar = tqdm(total=total_frames, unit='Frames',desc='Writing '+str(total_frames)+' frames from ' + filename + ' to frames/')
+    pbar = tqdm(total=total_frames, unit='Frames',desc='Writing '+str(total_frames)+' frames from ' + file + ' to frames/')
     i=0
     while(cap.isOpened()):
         frame_exists, frame = cap.read()
         if frame_exists:
-            cv2.imwrite('frames/'+filename+'_'+ str(i)+'.jpg',frame)
+            cv2.imwrite(projectPath+'frames/'+file+'_'+ str(i)+'.jpg',frame)
             i+=1
             pbar.update(1)
         else:
@@ -103,7 +104,6 @@ def createFrames(file):
     pbar.close()
     cap.release()
     cv2.destroyAllWindows()
-
 #if __name__ == '__main__':
     #if len(sys.argv) != 2: 
         #print("Need exactly one argument ...")
@@ -112,4 +112,3 @@ def createFrames(file):
     #else:
         #file = sys.argv[1]
         #getTimestamps(file)
-    
