@@ -10,13 +10,13 @@ import dateparser
 
 def match(videos=['null'],tracks=['null'],inputPath=False,projectPath=False,autoscan=True,maxTimeDifference=1.0):
     
-    
     #MANAGE PATH
     if inputPath == False:
         inputPath = os.getcwd()+'\\'
     if inputPath[-1] != '/':
         if inputPath[-1] != '\\':
             inputPath = inputPath+'\\'
+    
     #MANAGE CREATE PROJECT
     createProject=False
     if projectPath == False:
@@ -48,9 +48,12 @@ def match(videos=['null'],tracks=['null'],inputPath=False,projectPath=False,auto
         if 'input' not in os.listdir(projectPath):
             os.mkdir(projectPath+'input/')
         inputDF.to_csv(projectPath+'input/inputFiles.csv')
+    
     #READ DATA INTO DATAFRAMES    
     framesDF = pd.DataFrame()
     pointsDF = pd.DataFrame()
+    
+    #GET DATA FROM EXISTING PROJECT
     if createProject == True:
         for video in videos: 
                 framesDF = framesDF.append(vTk.getTimestamps(inputPath,video,projectPath,export=True),ignore_index=True)
@@ -66,6 +69,7 @@ def match(videos=['null'],tracks=['null'],inputPath=False,projectPath=False,auto
                 pointsDF = pointsDF.append(pd.read_csv(projectPath+'tracks/'+x),ignore_index=True)
             framesDF['Timestamp'] = [dateparser.parse(i) for i in framesDF['Timestamp']]
             pointsDF['timestamp']= [dateparser.parse(i) for i in pointsDF['timestamp']]
+    
     #MATCH POINTS TO CLOSEST FRAME OR SET UNDEFINED IF INSUFFICIENT TIME DIFFERENCE
     taggedDF = pointsDF
     i = 0
