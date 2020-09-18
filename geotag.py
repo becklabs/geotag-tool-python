@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Aug 19 22:51:39 2020
+
+@author: beck
+"""
+
 import videoToolkit as vTk
 import trackToolkit as tTk
 import os
@@ -7,6 +14,7 @@ import time
 import sys
 from GPSPhoto import gpsphoto
 import dateparser
+import argparse
 
 def match(videos=['null'],tracks=['null'],inputPath=False,projectPath=False,autoscan=True,maxTimeDifference=1.0):
     
@@ -16,7 +24,6 @@ def match(videos=['null'],tracks=['null'],inputPath=False,projectPath=False,auto
     if inputPath[-1] != '/':
         if inputPath[-1] != '\\':
             inputPath = inputPath+'\\'
-    
     #MANAGE CREATE PROJECT
     createProject=False
     if projectPath == False:
@@ -52,8 +59,6 @@ def match(videos=['null'],tracks=['null'],inputPath=False,projectPath=False,auto
     #READ DATA INTO DATAFRAMES    
     framesDF = pd.DataFrame()
     pointsDF = pd.DataFrame()
-    
-    #GET DATA FROM EXISTING PROJECT
     if createProject == True:
         for video in videos: 
                 framesDF = framesDF.append(vTk.getTimestamps(inputPath,video,projectPath,export=True),ignore_index=True)
@@ -81,10 +86,10 @@ def match(videos=['null'],tracks=['null'],inputPath=False,projectPath=False,auto
         else:
             taggedDF.loc[i, 'Frame'] = float('nan')
         i += 1
+    
     #DROP UNDEFINED POINTS FROM DF
     taggedDF = taggedDF.dropna()
     taggedDF = taggedDF.reset_index(drop=True)
-    print('now geotagging')
     if 'geotagged frames' not in os.listdir(projectPath):
         os.mkdir(projectPath+'geotagged frames/')
     i = 0
@@ -97,5 +102,12 @@ def match(videos=['null'],tracks=['null'],inputPath=False,projectPath=False,auto
                                 timeStamp=taggedDF.loc[i, 'timestamp'])
         photo.modGPSData(info, projectPath+'geotagged frames/'+ frame)
         i+=1
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i','--input',type=str,default=False,help='Path to look for videos/tracks in')
+    parser.add_argument('-p','--project',type=str,default=False,help='Path to project folder')
+    parser.add_argument('-m','--maxtimedifference',type=float,default=1.0,help='Max allowed time difference between frame and point')
+    args = parser.parse_args()
+    match(inputPath = args.input, projectPath = args.project, maxTimeDifference = args.maxtimedifference)
 
         
