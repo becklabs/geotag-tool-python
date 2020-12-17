@@ -1,5 +1,6 @@
 from geotag_obj import Project
 
 project = Project()
-project.load_project(r'/C:Users/beck/Downloads/projects/project2020-12-15_213634')
-#project.match(timeoffset=4)
+project.create(inputPath=r'C:\Users\beck\Documents\CSCR\geotag-tool-python\July31', projectPath=r'C:\Users\beck\Documents\CSCR\geotag-tool-python\July31')
+project.match(timeoffset=4)
+project.export()

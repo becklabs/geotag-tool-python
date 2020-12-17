@@ -70,23 +70,26 @@ def getTimestamps(inputPath,file):
     df['Frame'] = frames
     df['Timestamp'] = timestamps
     return df
+def getFps(inputPath, file):
+    cap = cv2.VideoCapture(inputPath+file)
+    return int(cap.get(cv2.CAP_PROP_FPS))
 
-def createFrames(inputPath,file,projectPath,taggedDF):
+def createFrames(inputPath,file,projectPath,export_path,taggedDF):
     taggedList = [taggedDF.loc[i,'Frame'] for i in range(len(taggedDF['Frame']))]
-    if 'frames' not in os.listdir(projectPath):
-        os.mkdir(projectPath+'frames/')
+    short_fnames = [int(i.split('.')[1].split('_')[1]) for i in taggedList]
+    if export_path not in os.listdir(projectPath):
+        os.mkdir(projectPath+export_path)
     cap = cv2.VideoCapture(inputPath+file)
     sys.stdout.flush()
-    pbar = tqdm(total=len(taggedList), unit='Frames',desc='Writing '+str(len(taggedList))+' frames from ' + file + ' to frames/')
+    pbar = tqdm(total=len(taggedList), unit='Frames',desc='Writing '+str(len(taggedList))+' frames from '+file + ' to '+export_path)
     i=0
     while(cap.isOpened()):
         frame_exists, frame = cap.read()
         if frame_exists:
-            framename = file+'_'+ str(i)+'.jpg'
-            if framename in taggedList:
-                cv2.imwrite(projectPath+'frames/'+framename,frame)
+            if i in short_fnames:
+                cv2.imwrite(projectPath+export_path+file+'_'+ str(i)+'.jpg',frame)
+                pbar.update(1)
             i+=1
-            pbar.update(1)
         else:
             break
     pbar.close()
